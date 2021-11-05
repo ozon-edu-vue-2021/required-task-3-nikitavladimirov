@@ -27,14 +27,16 @@
                         v-if="legend.length > 0"
                         class="legend__items"
                     >
-                        <LegendItem
-                            v-for="(item, index) in legend"
-                            :key="index"
-                            :color="item.color"
-                            :text="item.text"
-                            :counter="item.counter"
-                            class="legend__item"
-                        />
+                        <draggable v-model="legendItemsArray">
+                            <LegendItem
+                                v-for="(item, index) in legend"
+                                :key="index"
+                                :color="item.color"
+                                :text="item.text"
+                                :counter="item.counter"
+                                class="legend__item"
+                            />
+                        </draggable>
                     </div>
                     <span
                         v-else
@@ -44,7 +46,7 @@
                     </span>
                 </div>
                 <div class="legend__chart">
-                    <!-- chart -->
+                    <Doughnut ref="chart"/>
                 </div>
             </div>
             <div
@@ -68,6 +70,8 @@
 import LegendItem from "./SideMenu/LegendItem.vue";
 import PersonCard from "./SideMenu/PersonCard.vue";
 import legend from "@/assets/data/legend.json";
+import draggable from 'vuedraggable'
+import { Doughnut } from "vue-chartjs"
 
 export default {
     props: {
@@ -83,14 +87,20 @@ export default {
     components: {
         LegendItem,
         PersonCard,
+        draggable,
+        Doughnut
     },
     data() {
         return {
             legend: [],
+            legendItemsArray: []
         };
     },
     created() {
         this.loadLegend();
+    },
+    mounted () {
+        this.makeChart();
     },
     methods: {
         loadLegend() {
@@ -99,6 +109,24 @@ export default {
         closeProfile() {
             this.$emit("update:isUserOpenned", false);
         },
+        makeChart() {
+            const chartData = {
+                labels: this.legend.map(item => item.text),
+                datasets: [
+                    {
+                        label: 'Легенда',
+                        backgroundColor: this.legend.map(item => item.color),
+                        data: this.legend.map(item => item.counter)
+                    }
+                ]
+            }
+            const options = {
+                legend: {
+                    display: false
+                }
+            }
+            this.$refs.chart.renderChart(chartData, options);
+        }
     },
 };
 </script>
